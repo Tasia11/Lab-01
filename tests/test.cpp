@@ -1,13 +1,40 @@
-// Copyright 2018 Your Name <your_email>
+// Copyright 2020 Osipova Anastasiya anastasiyaosipova2001@gmqil.com
 #include <gtest/gtest.h>
 
-#include "parser.hpp"
-
-TEST(Parser, EmptyParser) {
-  Parser a;
-  ASSERT_TRUE(a.emptyJSONobject());
-  Parser b;
-  b.setJSONstring(R"({
+#include <parser.hpp>
+#include <sstream>
+std::string getFullPath(const std::string& name) {
+  std::string s(__FILE__);
+  for (size_t i = 0; i < 8; ++i) {
+    s.pop_back();
+  }
+  return s + name;
+}
+TEST(Parser, Empty_path) { ASSERT_THROW(Parser(""), std::invalid_argument); }
+TEST(Parser, Opening_file) {
+  ASSERT_THROW(Parser("my_jso.json"), std::runtime_error);
+}
+TEST(Parser, Empty_json) {
+  ASSERT_THROW(Parser(R"({})"), std::invalid_argument);
+}
+TEST(Parser, Empty_file) {
+  Parser pars(getFullPath("example_json.json"));
+  std::stringstream str;
+  str << pars;
+  std::string str_example(R"(| name             | group  | avg  | debt         |
+|------------------|--------|------|--------------|
+|Osipova Anastasya | IU8-33 | null | C++          |
+|------------------|--------|------|--------------|
+)");
+  std::vector<size_t> column_width{19, 9, 7, 15};
+  std::vector<std::string> column_name{"name", "group", "avg", "debt"};
+  ASSERT_EQ(str.str(), str_example);
+}
+TEST(Parser, Correct_array) {
+  ASSERT_THROW(Parser(R"({"items": 0})"), std::invalid_argument);
+}
+TEST(Parser, Count_items) {
+  ASSERT_THROW(Parser(R"({
   "items": [
     {
       "name": "Ivanov Petr",
@@ -20,122 +47,69 @@ TEST(Parser, EmptyParser) {
       "group": 31,
       "avg": 4,
       "debt": "C++"
-    },
-    {
-      "name": "Pertov Nikita",
-      "group": "IU8-31",
-      "avg": 3.33,
-      "debt": [
-        "C++",
-        "Linux",
-        "Network"
-      ]
     }
   ],
   "_meta": {
     "count": 3
   }
-})");
-  ASSERT_FALSE(b.emptyJSONobject());
-}
-TEST(Parser, Throw) {
-  EXPECT_THROW(Parser(""), std::invalid_argument);
-  EXPECT_THROW(Parser("Wrong.json"), std::out_of_range);
-  EXPECT_THROW(Parser().setJSONstring(R"({
-  "items":
-    {
-      "name": "Ivanov Petr",
-      "group": "1",
-      "avg": "4.25",
-      "debt": null
-    }
-}
-)"),
-               std::invalid_argument);
-  EXPECT_THROW(Parser().setJSONstring(R"({
-  "items": [
-    {
-      "name": "Ivanov Petr",
-      "group": "1",
-      "avg": "4.25",
-      "debt": null
-    },
-    {
-      "name": "Sidorov Ivan",
-      "group": 31,
-      "avg": 4,
-      "debt": "C++"
-    },
-    {
-      "name": "Pertov Nikita",
-      "group": "IU8-31",
-      "avg": 3.33,
-      "debt": [
-        "C++",
-        "Linux",
-        "Network"
-      ]
-    }
-  ],
-  "_meta": {
-    "count": 4
-  }
 })"),
-               std::invalid_argument);
+               std::out_of_range);
 }
-TEST(Parser, CorrectTypesOfFieldsNull) {
-  Student s{json::parse(R"({
-      "name": "Ivanov Petr",
+TEST(Parser, correct_output) {
+  Parser pars(getFullPath("my_json.json"));
+  std::stringstream str;
+  str << pars;
+  std::string str_example(R"(| name          | group  | avg  | debt         |
+|---------------|--------|------|--------------|
+| Ivanov Petr   | 1      | 4.25 | null         |
+|---------------|--------|------|--------------|
+| Sidorov Ivan  | 31     | 4    | C++          |
+|---------------|--------|------|--------------|
+| Pertov Nikita | IU8-31 | 3.33 | 3 items      |
+|---------------|--------|------|--------------|
+)");
+  ASSERT_EQ(str.str(), str_example);
+}
+TEST(Student, Empty_student) {
+  ASSERT_THROW(Student(json::parse(R"({})")), std::invalid_argument);
+}
+TEST(Student, correct_out_name) {
+  ASSERT_THROW(Student(json::parse(R"({
+      "name": [],
       "group": "1",
       "avg": "4.25",
       "debt": null
-    })")};
-  ASSERT_EQ(s.getName(), "Ivanov Petr");
-  ASSERT_EQ(std::any_cast<json>(s.getGroup()).get<std::string>(), "1");
-  ASSERT_DOUBLE_EQ(s.getAvg(), 4.25);
-  ASSERT_TRUE(std::any_cast<json>(s.getDebt()).is_null());
+})")),
+               std::invalid_argument);
 }
-TEST(Parser, CorrectTypesOfFieldsString) {
-  Student s{json::parse(R"({
+TEST(Student, correct_out_group) {
+  ASSERT_THROW(Student(json::parse(R"({
       "name": "Sidorov Ivan",
-      "group": 31,
+      "group": [],
       "avg": 4,
       "debt": "C++"
-    })")};
-  ASSERT_EQ(s.getName(), "Sidorov Ivan");
-  ASSERT_EQ(std::any_cast<json>(s.getGroup()).get<int>(), 31);
-  ASSERT_DOUBLE_EQ(s.getAvg(), 4.00);
-  ASSERT_TRUE(std::any_cast<json>(s.getDebt()).is_string());
+})")),
+               std::invalid_argument);
 }
-TEST(Parser, CorrectTypesOfFieldsArray) {
-  Student s{json::parse(R"({
+TEST(Student, correct_out_avg) {
+  ASSERT_THROW(Student st(json::parse(R"({
       "name": "Pertov Nikita",
       "group": "IU8-31",
-      "avg": 3.33,
+      "avg": [],
       "debt": [
         "C++",
         "Linux",
         "Network"
       ]
-    })")};
-  ASSERT_EQ(s.getName(), "Pertov Nikita");
-  ASSERT_EQ(std::any_cast<json>(s.getGroup()).get<std::string>(), "IU8-31");
-  ASSERT_DOUBLE_EQ(s.getAvg(), 3.33);
-  ASSERT_TRUE(std::any_cast<json>(s.getDebt()).is_array());
+})")),
+               std::invalid_argument);
 }
-TEST(Test6, ThrowStudent) {
-  ASSERT_THROW(Student{json::parse(R"({})")}, std::invalid_argument);
-}
-TEST(Test7, From_json) {
-  Student s;
-  s.from_json(json::parse(R"({
-      "name": "Sidorov Ivan",
-      "group": 31,
-      "avg": 4,
-      "debt": "C++"
-    })"));
-  ASSERT_EQ(s.getName(), "Sidorov Ivan");
-  ASSERT_EQ(std::any_cast<json>(s.getGroup()).get<int>(), 31);
-  ASSERT_DOUBLE_EQ(s.getAvg(), 4.00);
-  ASSERT_EQ(std::any_cast<json>(s.getDebt()).get<std::string>(), "C++");
+TEST(Student, correct_out_debt) {
+  ASSERT_THROW(Student st(json::parse(R"({
+      "name": "Kuspelev Alexei",
+      "group": 33,
+      "avg": null,
+      "debt": 0
+})")),
+               std::invalid_argument);
 }
