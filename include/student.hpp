@@ -1,3 +1,4 @@
+// Copyright 2018 Osipova Anastasiya anastasiyaosipova2001@gmail.com
 #ifndef INCLUDE_STUDENT_HPP_
 #define INCLUDE_STUDENT_HPP_
 
