@@ -1,179 +1,89 @@
-// Copyright 2018 Your Name <your_email>
-
-#include <algorithm>
+// Copyright 2020 Osipova Anastasiya anastasiyaosipova2001@gmqil.com
 
 #include "header.hpp"
 
-Parser::Parser() = default;
-
-Parser::Parser(const std::vector<Student> &s) : students(s) {
-  setLengths();
-}
-Parser::Parser(const std::string &path) {
-  if (path.empty()) {
-    throw std::invalid_argument("The file path cannot be empty!!!");
-  }
-  std::ifstream json_file(path);
-  if (!json_file.is_open()) {
-    throw std::out_of_range("The file with the specified name: " + path +
-                            " does not exist!!!");
-  }
+Parser::Parser(const std::string& jsonPath) {
   json data;
-  json_file >> data;
-  if (!data.at("items").is_array()) {
-    throw std::invalid_argument("Items is not array!!!");
-  }
-  if (data.at("items").size() != data.at("_meta").at("count").get<size_t>()) {
-    throw std::invalid_argument("Items length don't equal _meta.count!!!");
-  }
-  for (auto const &student : data.at("items")) {
-    students.emplace_back(student);
-  }
-  setLengths();
-}
-const std::vector<Student> &Parser::getStudents() const { return students; }
-const Lengths_of_fields &Parser::getL() const { return l; }
-
-void Parser::printRow(const Student &student) const {
-  std::cout << std::left << "|" << std::setw(l.length_1_field)
-            << student.getName() << "|";
-  if (std::any_cast<json>(student.getGroup()).is_number()) {
-    std::cout << std::setw(l.length_2_field)
-              << std::any_cast<json>(student.getGroup()).get<int>();
-  } else if (std::any_cast<json>(student.getGroup()).is_string()) {
-    std::cout << std::setw(l.length_2_field)
-              << std::any_cast<json>(student.getGroup()).get<std::string>();
-  } else {
-    throw std::invalid_argument(
-        "The type of the Group variable is undefined!!!");
-  }
-  std::cout << "|" << std::setprecision(3) << std::setw(l.length_3_field)
-            << student.getAvg() << "|";
-  if (std::any_cast<json>(student.getDebt()).is_null()) {
-    std::cout << std::setw(l.length_4_field) << "null";
-  } else if (std::any_cast<json>(student.getDebt()).is_array()) {
-    std::string it = std::to_string(std::any_cast<json>(student.getDebt())
-                                        .get<std::vector<std::string>>()
-                                        .size()) +
-                     " items";
-    std::cout << std::setw(l.length_4_field) << it;
-  } else if (std::any_cast<json>(student.getDebt()).is_string()) {
-    std::cout << std::setw(l.length_4_field)
-              << std::any_cast<json>(student.getDebt()).get<std::string>();
-  } else {
-    throw std::invalid_argument(
-        "The type of the Debt variable is undefined!!!");
-  }
-  std::cout << "|";
-}
-std::string Parser::getSeparator() const {
-  std::string sep = "|";
-  for (size_t i = 0; i < l.length_1_field; ++i) {
-    sep += "-";
-  }
-  sep += "|";
-  for (size_t i = 0; i < l.length_2_field; ++i) {
-    sep += "-";
-  }
-  sep += "|";
-  for (size_t i = 0; i < l.length_3_field; ++i) {
-    sep += "-";
-  }
-  sep += "|";
-  for (size_t i = 0; i < l.length_4_field; ++i) {
-    sep += "-";
-  }
-  sep += "|";
-  return sep;
-}
-void Parser::parser(const std::string &path) {
-  if (path.empty()) {
-    throw std::invalid_argument("The file path cannot be empty!!!");
-  }
-  std::ifstream json_file(path);
-  if (!json_file.is_open()) {
-    throw std::out_of_range("The file with the specified name: " + path +
-                            " does not exist!!!");
-  }
-  json data;
-  json_file >> data;
-  if (!data.at("items").is_array()) {
-    throw std::invalid_argument("Items is not array!!!");
-  }
-  if (data.at("items").size() != data.at("_meta").at("count").get<size_t>()) {
-    throw std::invalid_argument("Items length don't equal _meta.count!!!");
-  }
-  for (auto const &student : data.at("items")) {
-    students.emplace_back(student);
-  }
-  setLengths();
-  std::cout << std::left << "|" << std::setw(l.length_1_field) << "name"
-            << "|" << std::setw(l.length_2_field) << "group"
-            << "|" << std::setw(l.length_3_field) << "avg"
-            << "|" << std::setw(l.length_4_field) << "debt"
-            << "|" << '\n';
-  std::string separator = getSeparator();
-  std::cout << separator << "\n";
-  for (const auto &student : students) {
-    printRow(student);
-    std::cout << '\n';
-    std::cout << separator << "\n";
-  }
-}
-void Parser::sortByName() {
-  std::sort(students.begin(), students.end(),
-            [](const Student &a, const Student &b) {
-              return a.getName() < b.getName();
-            });
-}
-void Parser::sortByAverageScore() {
-  std::sort(students.begin(), students.end(),
-            [](const Student &a, const Student &b) {
-              return a.getAvg() < b.getAvg();
-            });
-}
-bool Parser::emptyJSONobject() const { return students.empty(); }
-void Parser::setJSONstring(const std::string &JSON) {
-  std::stringstream json_string(JSON);
-  json data;
-  json_string >> data;
-  if (!data.at("items").is_array()) {
-    throw std::invalid_argument("Items is not array!!!");
-  }
-  if (data.at("items").size() != data.at("_meta").at("count").get<size_t>()) {
-    throw std::invalid_argument("Items length don't equal _meta.count!!!");
-  }
-  for (auto const &student : data.at("items")) {
-    students.emplace_back(student);
-  }
-}
-void Parser::setLengths() {
-  for (const auto &student : students) {
-    if (student.getName().size() > l.length_1_field) {
-      l.length_1_field = student.getName().size() + 1;
+  if (jsonPath[0] != '{') {
+    if (jsonPath.empty()) {
+      throw std::invalid_argument("path is not available");
     }
-    if (std::any_cast<json>(student.getGroup()).is_number()) {
-      if (std::to_string(std::any_cast<json>(student.getGroup()).get<int>())
-              .size() > l.length_2_field) {
-        l.length_2_field =
-            std::to_string(std::any_cast<json>(student.getGroup()).get<int>())
-                .size() +
-            1;
-      }
+    std::ifstream file(jsonPath);
+    if (!file) {
+      throw std::runtime_error("unable to open json: " + jsonPath);
+    }
+    file >> data;
+  } else {
+    data = json::parse(jsonPath);
+  }
+  if (data.empty()) {
+    throw std::invalid_argument("json is empty");
+  }
+  if (!data.at("items").is_array()) {
+    throw std::invalid_argument("json does not contain an array ");
+  }
+  if (data.at("items").size() != data.at("_meta").at("count")) {
+    throw std::out_of_range("_meta.count != len(items)");
+  }
+  for (auto const& student : data.at("items")) {
+    students.push_back(Student(student));
+  }
+  for (auto const& student : students) {
+    if (student.getName().size() + 3 > column_width[0]) {
+      column_width[0] = student.getName().size() + 3;
+    }
+  }
+}
+void Parser::Print_columns(std::ostream& out) const {
+  out << std::setfill(' ') << std::left << std::setw(column_width[0])
+      << "| name" << std::setw(column_width[1]) << "| group"
+      << std::setw(column_width[2]) << "| avg" << std::setw(column_width[3])
+      << "| debt" << '|' << std::endl;
+}
+void Parser::Print_lines(std::ostream& out) const {
+  for (size_t i = 0; i < 4; ++i) {
+    out << std::setfill('-') << std::setw(column_width[i]) << "|";
+  }
+  out << '|' << std::endl;
+}
+std::ostream& operator<<(std::ostream& out, const Parser& pars) {
+  pars.Print_columns(out);
+  pars.Print_lines(out);
+  for (size_t i = 0; i < pars.students.size(); ++i) {
+    out << std::setfill(' ') << std::setw(pars.column_width[0])
+        << "| " + pars.students[i].getName();
+    if (pars.students[i].getGroup().type() == typeid(std::string)) {
+      out << std::setw(pars.column_width[1])
+          << "| " + std::any_cast<std::string>(pars.students[i].getGroup());
     } else {
-      if (std::any_cast<json>(student.getGroup()).get<std::string>().size() >
-          l.length_2_field) {
-        l.length_2_field =
-            std::any_cast<json>(student.getGroup()).get<std::string>().size() +
-            1;
-      }
+      out << "| " << std::setw(pars.column_width[1] - 2)
+          << std::any_cast<size_t>(pars.students[i].getGroup());
     }
-    if (std::any_cast<json>(student.getDebt()).is_string() &&
-        std::any_cast<json>(student.getDebt()).get<std::string>().size() >
-            l.length_4_field) {
-      l.length_4_field =
-          std::any_cast<json>(student.getDebt()).get<std::string>().size() + 1;
+    if (pars.students[i].getAvg().type() == typeid(std::nullptr_t)) {
+      out << "| " << std::setw(pars.column_width[2] - 2) << "null";
+    } else if (pars.students[i].getAvg().type() == typeid(std::string)) {
+      out << std::setw(pars.column_width[2])
+          << "| " + std::any_cast<std::string>(pars.students[i].getAvg());
+    } else if (pars.students[i].getAvg().type() == typeid(std::size_t)) {
+      out << "| " << std::setw(pars.column_width[2] - 2)
+          << std::any_cast<size_t>(pars.students[i].getAvg());
+    } else {
+      out << "| " << std::setw(pars.column_width[2] - 2)
+          << std::any_cast<double>(pars.students[i].getAvg());
     }
+    if (pars.students[i].getDebt().type() == typeid(std::nullptr_t)) {
+      out << "| " << std::setw(pars.column_width[3] - 2) << "null";
+    } else if (pars.students[i].getDebt().type() == typeid(std::string)) {
+      out << std::setw(pars.column_width[3])
+          << "| " + std::any_cast<std::string>(pars.students[i].getDebt());
+    } else {
+      out << "| "
+          << std::any_cast<std::vector<std::string>>(pars.students[i].getDebt())
+                 .size()
+          << std::setw(pars.column_width[3] - 3) << " items";
+    }
+    out << '|' << std::endl;
+    pars.Print_lines(out);
   }
+  return out;
 }
-Parser::~Parser() {}
