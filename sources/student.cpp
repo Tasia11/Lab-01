@@ -1,3 +1,4 @@
+// Copyright 2018 Osipova Anastasiya anastasiyaosipova2001@gmail.com
 #include <iostream>
 
 #include "student.hpp"
@@ -45,8 +46,7 @@ void Student::from_json(const json &obj) {
     Avg = std::stod(obj.at("avg").get<std::string>());
   } else if (obj.at("avg").is_number()) {
     Avg = obj.at("avg").get<double>();
-  } 
-  else {
+  } else {
     throw std::invalid_argument("The type of the Avg variable is undefined!!!");
   }
   Debt = std::any{obj.at("debt")};
