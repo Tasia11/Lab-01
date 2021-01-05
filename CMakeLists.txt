@@ -31,7 +31,6 @@ find_package(GTest CONFIG REQUIRED)
 
 add_library(template STATIC
         ${CMAKE_CURRENT_SOURCE_DIR}/sources/student.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/sources/header.cpp
         )
 add_executable(tests
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/test.cpp
