@@ -35,22 +35,25 @@ add_library(template STATIC
 add_executable(tests
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/test.cpp
         )
-target_include_directories(template
-         PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include nlohmann_json::nlohmann_json
-        )
-target_include_directories(tests
-        PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include nlohmann_json::nlohmann_json GTest::main
-        )
-target_link_libraries(tests GTest::main template  )
-target_link_libraries(template PUBLIC nlohmann_json::nlohmann_json)
+       
+# TODO: change template word to project name and delete this comment
+target_include_directories(template 
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+target_include_directories(tests 
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+# TODO: change template word to project name and delete this comment
+target_link_libraries(tests GTest::main template)
 
 enable_testing()
-add_test(NAME unit_tests COMMAND tests)
+add_test(NAME unit_tests COMMAND tests) 
 
 if(BUILD_COVERAGE)
   set(ENABLE_COVERAGE ON CACHE BOOL "Enable coverage build." FORCE)
   list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
   find_package(codecov)
+  # TODO: change template word to project name and delete this comment
   add_coverage(template)
   add_coverage(tests)
   list(APPEND LCOV_REMOVE_PATTERNS "'${PROJECT_SOURCE_DIR}/tests/*'")
