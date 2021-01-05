@@ -1,7 +1,7 @@
 // Copyright 2020 Osipova Anastasiya anastasiyaosipova2001@gmqil.com
 #include <gtest/gtest.h>
 
-#include <parser.hpp>
+#include <header.hpp>
 #include <sstream>
 std::string getFullPath(const std::string& name) {
   std::string s(__FILE__);
@@ -106,7 +106,7 @@ TEST(Student, correct_out_avg) {
 }
 TEST(Student, correct_out_debt) {
   ASSERT_THROW(Student st(json::parse(R"({
-      "name": "Kuspelev Alexei",
+      "name": "Osipova Anastasya",
       "group": 33,
       "avg": null,
       "debt": 0
