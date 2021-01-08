@@ -1,4 +1,4 @@
-// Copyright 2020 Osipova Anastasiya anastasiyaosipova2001@gmqil.com
+// Copyright 2020 Osipova Anastasiya anastasiyaosipova2001@gmail.com
 #include <gtest/gtest.h>
 
 #include <header.hpp>
@@ -21,10 +21,10 @@ TEST(Parser, Empty_file) {
   Parser pars(getFullPath("example_json.json"));
   std::stringstream str;
   str << pars;
-  std::string str_example(R"(| name             | group  | avg  | debt         |
-|------------------|--------|------|--------------|
-|Osipova Anastasya | IU8-33 | null | C++          |
-|------------------|--------|------|--------------|
+  std::string str_example(R"(| name              | group  | avg  | debt         |
+|-------------------|--------|------|--------------|
+| Osipova Anastasya | IU8-33 | null | C++          |
+|-------------------|--------|------|--------------|
 )");
   std::vector<size_t> column_width{19, 9, 7, 15};
   std::vector<std::string> column_name{"name", "group", "avg", "debt"};
